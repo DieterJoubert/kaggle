@@ -15,7 +15,7 @@ test$Survived <- rep(0, 418)
 
 #make a CSV file predicting that everybody dies
 submit <- data.frame(PassengerId = test$PassengerId, Survived = test$Survived)
-write.csv(submit, file = "./out/theyallperish.csv", row.names = FALSE)
+write.csv(submit, file = "./out/r_out_1.csv", row.names = FALSE)
 
 #---------------------------------------------------------------------------
 
@@ -33,7 +33,7 @@ test$Survived <- 0
 test$Survived [test$Sex == 'female'] <- 1
 
 submit <- data.frame(PassengerId = test$PassengerId, Survived = test$Survived)
-write.csv(submit, file = "./out/allmenperish.csv", row.names = FALSE)
+write.csv(submit, file = "./out/r_out_2.csv", row.names = FALSE)
 
 #---------------------------------------------------------------------------
 
@@ -52,3 +52,20 @@ aggregate(Survived ~ Child + Sex, data=train, FUN=length)
 
 #same, but create custom function to get proportion for each double category
 aggregate(Survived ~ Child + Sex, data=train, FUN=function(x) {sum(x)/length(x)})
+
+#divide fare prices into 4 brackets for easy comparison
+train$Fare2 <- '30+'
+train$Fare2[train$Fare < 30 & train$Fare >= 20]  <- '20-30'
+train$Fare2[train$Fare < 20 & train$Fare >= 10] <- '10-20'
+train$Fare2[train$Fare < 10] <- '<10'
+
+#aggregate sex with fare brackets and class
+aggregate(Survived ~ Fare2 + Pclass + Sex, data=train, FUN=function(x) {sum(x)/length(x)})
+
+#result: female in 3rd class with fare '10-20' or '20-30' also highly unlikely to survive
+test$Survived <- 0
+test$Survived[test$Sex == 'female'] <- 1
+test$Survived[test$Sex == 'female' & test$Pclass == 3 & test$Fare >= 20] <- 0 
+
+submit <- data.frame(PassengerId = test$PassengerId, Survived = test$Survived)
+write.csv(submit, file = "./out/r_out_3.csv", row.names = FALSE)
